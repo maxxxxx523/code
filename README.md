@@ -21,3 +21,10 @@ cd code
 npm install
 # 或
 pip install -r requirements.txt
+```
+## 📧 联系方式
+项目维护者：cbc - 2263797373@qq.com
+
+项目链接：https://github.com/📧 联系方式
+
+项目链接：https://github.com/maxxxxx523/code
