@@ -1,10 +1,10 @@
-# 项目名称
+# 项目名称 编程学习仓库
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/maxxxxx523/code.svg)](https://github.com/maxxxxx523/code/stargazers)
 [![Issues](https://img.shields.io/github/issues/maxxxxx523/code.svg)](https://github.com/maxxxxx523/code/issues)
 
-简短描述你的项目是做什么的，解决了什么问题。一两句话即可。
+这是本人在编程学习过程中存放源代码的仓库，欢迎大家的访问！
 
 ## ✨ 特性
 
