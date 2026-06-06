@@ -39,34 +39,33 @@ private:
     }
 
     // 右旋
-    TreeNode *rightRotate(TreeNode *p)
+    TreeNode *rightRotate(TreeNode *root)
     {
-        TreeNode *t1 = p->left;
-        TreeNode *t2 = t1->right;
-        t1->right = p;
-        p->left = t2;
+        TreeNode *p = root->left;
+        root->left = p->right;
+        p->right = root;
 
         // 更新高度
+        updateHeight(root);
         updateHeight(p);
-        updateHeight(t1);
 
-        return t1;
+        return p;
     }
 
     // 左旋
-    TreeNode *leftRotate(TreeNode *p)
+    TreeNode *leftRotate(TreeNode *root)
     {
-        TreeNode *t1 = p->right;
-        TreeNode *t2 = t1->left;
-        t1->left = p;
-        p->right = t2;
+        TreeNode *p = root->right;
+        root->right = p->left;
+        p->left = root;
 
         // 更新高度
+        updateHeight(root);
         updateHeight(p);
-        updateHeight(t1);
 
-        return t1;
+        return p;
     }
+
 
     // 平衡节点
     TreeNode *balance(TreeNode *node)
@@ -354,6 +353,6 @@ int main()
     avl.remove(10);
     cout << "删除后的中序遍历: ";
     avl.printInorder();
-    
+    system("pause");
     return 0;
 }
