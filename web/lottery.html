@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎰 抽签摇号开奖系统</title>
+<style>
+  :root {
+    --bg: #0a0a1a;
+    --card: #141430;
+    --accent: #ff4d6a;
+    --gold: #f0c060;
+    --text: #e0dce8;
+    --muted: #8888aa;
+    --border: #2a2a4a;
+    --green: #4ecb71;
+    --blue: #5b9cf5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* 背景粒子 */
+  .particles {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(255,77,106,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 60%, rgba(91,156,245,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(240,192,96,0.05) 0%, transparent 50%);
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 标题 */
+  .header {
+    text-align: center;
+    padding: 30px 20px 10px;
+  }
+  .header h1 {
+    font-size: 2.6em;
+    background: linear-gradient(135deg, var(--accent), var(--gold), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    color: var(--muted);
+    font-size: 0.95em;
+    letter-spacing: 2px;
+  }
+
+  /* 模式切换 */
+  .mode-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .mode-tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .mode-tab.active {
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(255,77,106,0.3);
+  }
+
+  /* 卡片面板 */
+  .panel {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .panel-title {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 1px;
+  }
+  .panel-title .icon { font-size: 1.3em; }
+
+  /* 表单行 */
+  .form-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 14px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .form-group label {
+    font-size: 0.8em;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 0.95em;
+    outline: none;
+    transition: border 0.3s;
+    width: 100%;
+    min-width: 100px;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+
+  /* 自定义号码输入 */
+  .number-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,77,106,0.15);
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .number-tag .del {
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .number-tag .del:hover { opacity: 1; }
+
+  /* 按钮 */
+  .btn {
+    padding: 11px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #e0454f);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(255,77,106,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,77,106,0.5); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--blue), #4a7fd4);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(91,156,245,0.35);
+  }
+  .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(91,156,245,0.5); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: 6px 14px; font-size: 0.8em; border-radius: 8px; }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #d4a040);
+    color: #1a1a2e;
+    box-shadow: 0 4px 20px rgba(240,192,96,0.4);
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(240,192,96,0.6); }
+  .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* 开奖结果区 */
+  .result-area {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+  }
+  .result-placeholder {
+    color: var(--muted);
+    font-size: 1.2em;
+    letter-spacing: 2px;
+    opacity: 0.5;
+  }
+  .result-balls {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .result-ball {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8em;
+    font-weight: 800;
+    animation: ballPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    position: relative;
+  }
+  .ball-red {
+    background: radial-gradient(circle at 35% 30%, #ff6b7f, #c0392b);
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(255,77,106,0.5);
+  }
+  .ball-blue {
+    background: radial-gradient(circle at 35% 30%, #7db8ff, #2563eb);
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(91,156,245,0.5);
+  }
+  .ball-gold {
+    background: radial-gradient(circle at 35% 30%, #ffe4a0, #d4a040);
+    color: #1a1a2e;
+    box-shadow: 0 6px 24px rgba(240,192,96,0.5);
+  }
+  @keyframes ballPop {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    60% { transform: scale(1.15) rotate(8deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  .pulsing { animation: pulse 0.3s ease-in-out infinite; }
+
+  /* 滚动数字 */
+  .rolling-display {
+    font-size: 4em;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(240,192,96,0.5);
+    font-variant-numeric: tabular-nums;
+    font-family: 'Courier New', 'PingFang SC', monospace;
+  }
+
+  /* 历史记录 */
+  .history-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .history-item:hover { border-color: var(--accent); }
+  .history-balls {
+    display: flex;
+    gap: 6px;
+  }
+  .history-ball {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #fff;
+  }
+  .history-time { color: var(--muted); font-size: 0.8em; white-space: nowrap; }
+  .history-mode { color: var(--accent); font-size: 0.75em; font-weight: 600; }
+
+  /* 中奖名单 */
+  .winner-card {
+    background: linear-gradient(135deg, rgba(240,192,96,0.1), rgba(255,77,106,0.05));
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    animation: ballPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  .winner-card .winner-label {
+    font-size: 0.85em;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .winner-card .winner-name {
+    font-size: 2em;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(240,192,96,0.4);
+  }
+
+  /* 名单管理 */
+  .name-list-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .name-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+  }
+  .name-chip:hover { border-color: var(--accent); }
+  .name-chip .del-name { cursor: pointer; opacity: 0.4; font-size: 0.9em; }
+  .name-chip .del-name:hover { opacity: 1; color: var(--accent); }
+  .name-chip.winner-chip {
+    border-color: var(--gold);
+    background: rgba(240,192,96,0.1);
+    color: var(--gold);
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+
+  .flex-center { display: flex; align-items: center; gap: 10px; }
+  .text-muted { color: var(--muted); font-size: 0.85em; }
+  .text-accent { color: var(--accent); }
+  .text-gold { color: var(--gold); }
+  .text-center { text-align: center; }
+  .mt-10 { margin-top: 10px; }
+  .mt-20 { margin-top: 20px; }
+  .mb-10 { margin-bottom: 10px; }
+  .gap-10 { gap: 10px; }
+  .w-full { width: 100%; }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* 动画粒子爆发 */
+  .confetti {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+    animation: confettiFall 2s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg) scale(0); opacity: 0; }
+  }
+
+  /* 音效提示 */
+  .sound-indicator {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    font-size: 0.8em;
+    color: var(--muted);
+    background: var(--card);
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* 响应式 */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.8em; }
+    .mode-tab { font-size: 0.75em; padding: 10px 6px; }
+    .panel { padding: 18px; }
+    .result-ball { width: 54px; height: 54px; font-size: 1.4em; }
+    .rolling-display { font-size: 2.6em; }
+    .form-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles"></div>
+
+<!-- 音效开关 -->
+<div class="sound-indicator" id="soundToggle" onclick="toggleSound()" title="点击切换音效">
+  🔊 音效 <span id="soundLabel">开</span>
+</div>
+
+<div class="container">
+
+  <!-- 头部 -->
+  <div class="header">
+    <h1>🎰 抽签摇号开奖</h1>
+    <p class="subtitle">LUCKY DRAW · 好运降临</p>
+  </div>
+
+  <!-- 模式切换 -->
+  <div class="mode-tabs" id="modeTabs">
+    <button class="mode-tab active" data-mode="number">🔢 数字摇号</button>
+    <button class="mode-tab" data-mode="name">🎯 名单抽签</button>
+    <button class="mode-tab" data-mode="custom">🎲 自选号码</button>
+  </div>
+
+  <!-- ========== 模式1：数字摇号 ========== -->
+  <div class="panel mode-panel" id="panel-number">
+    <div class="panel-title"><span class="icon">🔢</span> 数字摇号</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>号码范围（从）</label>
+        <input type="number" id="rangeFrom" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>号码范围（到）</label>
+        <input type="number" id="rangeTo" value="36" min="1">
+      </div>
+      <div class="form-group">
+        <label>抽取个数</label>
+        <input type="number" id="pickCount" value="7" min="1" max="50">
+      </div>
+      <div class="form-group">
+        <label>是否放回</label>
+        <select id="withReplacement">
+          <option value="false">不放回（不重复）</option>
+          <option value="true">放回（可重复）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex-center gap-10">
+      <button class="btn btn-primary" id="btnRollNumber" onclick="startNumberDraw()">🎰 开始摇号</button>
+      <button class="btn btn-outline btn-sm" onclick="clearResult('number')">清空结果</button>
+    </div>
+
+    <div class="result-area mt-20" id="resultNumber">
+      <span class="result-placeholder">👆 点击上方按钮开始摇号</span>
+    </div>
+  </div>
+
+  <!-- ========== 模式2：名单抽签 ========== -->
+  <div class="panel mode-panel" id="panel-name" style="display:none;">
+    <div class="panel-title"><span class="icon">🎯</span> 名单抽签</div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1; min-width:200px;">
+        <label>添加参与者</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="nameInput" placeholder="输入姓名并按回车添加" style="flex:1;"
+                 onkeydown="if(event.key==='Enter')addName()">
+          <button class="btn btn-secondary btn-sm" onclick="addName()">添加</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>快速导入（逗号分隔）</label>
+        <input type="text" id="nameBatchInput" placeholder="张三,李四,王五,..." style="min-width:200px;">
+      </div>
+    </div>
+
+    <div class="flex-center gap-10 mb-10">
+      <button class="btn btn-outline btn-sm" onclick="importBatchNames()">📥 批量导入</button>
+      <button class="btn btn-outline btn-sm" onclick="addDemoNames()">👥 添加演示名单</button>
+      <button class="btn btn-outline btn-sm" onclick="clearNameList()">🗑️ 清空名单</button>
+    </div>
+
+    <div class="name-list-display" id="nameListDisplay"></div>
+
+    <div class="form-row mt-20">
+      <div class="form-group">
+        <label>抽取人数</label>
+        <input type="number" id="drawNameCount" value="1" min="1">
+      </div>
+    </div>
+
+    <div class="flex-center gap-10">
+      <button class="btn btn-gold" id="btnDrawName" onclick="startNameDraw()">🎯 开始抽签</button>
+      <button class="btn btn-outline btn-sm" onclick="clearResult('name')">清空结果</button>
+    </div>
+
+    <div class="result-area mt-20" id="resultName">
+      <span class="result-placeholder">👆 请先添加名单，然后点击抽签</span>
+    </div>
+  </div>
+
+  <!-- ========== 模式3：自选号码开奖 ========== -->
+  <div class="panel mode-panel" id="panel-custom" style="display:none;">
+    <div class="panel-title"><span class="icon">🎲</span> 自选号码开奖</div>
+    <p style="color:var(--muted); font-size:0.85em; margin-bottom:16px;">
+      先设置中奖号码，再填入参与者的选号，系统自动比对开奖
+    </p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>号码总数（如双色球红球33）</label>
+        <input type="number" id="customMaxNum" value="33" min="2">
+      </div>
+      <div class="form-group">
+        <label>开奖号码个数</label>
+        <input type="number" id="customPickCount" value="6" min="1">
+      </div>
+    </div>
+
+    <div class="flex-center gap-10 mb-10">
+      <button class="btn btn-primary" id="btnGenWinning" onclick="generateWinningNumbers()">🎰 摇出中奖号码</button>
+    </div>
+
+    <!-- 中奖号码展示 -->
+    <div id="winningDisplay" style="margin: 10px 0;"></div>
+
+    <!-- 参与者与选号 -->
+    <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 10px;">
+      <div class="form-row">
+        <div class="form-group" style="flex:1; min-width:140px;">
+          <label>参与者姓名</label>
+          <input type="text" id="playerName" placeholder="输入姓名">
+        </div>
+        <div class="form-group" style="flex:2; min-width:200px;">
+          <label>所选号码（逗号分隔）</label>
+          <input type="text" id="playerNumbers" placeholder="例：1,5,12,23,30,33">
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn btn-secondary btn-sm" onclick="addPlayer()" style="white-space:nowrap;">➕ 添加参与者</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex:1; min-width:200px;">
+          <label>批量导入参与者（格式：姓名=号码1,号码2,... 每行一个）</label>
+          <textarea id="batchPlayersInput" rows="3" style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px; color:var(--text); font-size:0.85em;" placeholder="张三=1,5,12,23,30,33&#10;李四=2,8,15,22,29,33"></textarea>
+        </div>
+      </div>
+      <div class="flex-center gap-10 mb-10">
+        <button class="btn btn-outline btn-sm" onclick="importBatchPlayers()">📥 批量导入</button>
+        <button class="btn btn-gold" onclick="startCustomDraw()">🏆 开奖！</button>
+        <button class="btn btn-outline btn-sm" onclick="clearCustomAll()">🗑️ 清空全部</button>
+      </div>
+    </div>
+
+    <!-- 参与者列表 -->
+    <div id="playerListDisplay" style="margin-top:10px;"></div>
+
+    <!-- 开奖结果 -->
+    <div class="result-area mt-20" id="resultCustom">
+      <span class="result-placeholder">👆 请摇出中奖号码并添加参与者</span>
+    </div>
+  </div>
+
+  <!-- ========== 历史记录 ========== -->
+  <div class="panel">
+    <div class="panel-title"><span class="icon">📋</span> 开奖记录
+      <span style="font-weight:400;font-size:0.75em;color:var(--muted);">（最近20条）</span>
+    </div>
+    <div class="history-list" id="historyList">
+      <span class="result-placeholder" style="font-size:0.9em;">暂无记录</span>
+    </div>
+    <div class="flex-center mt-10">
+      <button class="btn btn-outline btn-sm" onclick="clearHistory()">🗑️ 清空记录</button>
+      <button class="btn btn-outline btn-sm" onclick="exportHistory()">📤 导出记录</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==================== 全局状态 ====================
+let soundEnabled = true;
+let currentMode = 'number';
+let nameList = [];
+let players = [];
+let winningNumbers = [];
+let history = loadHistory();
+let isDrawing = false;
+
+// ==================== 音效（Web Audio API） ====================
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq = 800, duration = 0.08, type = 'sine') {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) { /* 静默处理 */ }
+}
+
+function playWinSound() {
+  if (!soundEnabled) return;
+  const melody = [523, 659, 784, 1047];
+  melody.forEach((freq, i) => {
+    setTimeout(() => playBeep(freq, 0.2, 'triangle'), i * 120);
+  });
+}
+
+function playTickSound() {
+  playBeep(600 + Math.random() * 200, 0.04, 'square');
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundLabel').textContent = soundEnabled ? '开' : '关';
+}
+
+// ==================== 粒子特效 ====================
+function spawnConfetti(count = 60) {
+  const colors = ['#ff4d6a','#f0c060','#5b9cf5','#4ecb71','#a78bfa','#ff8c42','#ff69b4','#00e5ff'];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random() * 100 + '%';
+      el.style.top = -(Math.random() * 40 + 10) + 'px';
+      el.style.width = (Math.random() * 10 + 6) + 'px';
+      el.style.height = (Math.random() * 14 + 6) + 'px';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+      el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      el.style.animationDelay = '0s';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }, i * 15);
+  }
+}
+
+// ==================== 模式切换 ====================
+document.getElementById('modeTabs').addEventListener('click', function(e) {
+  const tab = e.target.closest('.mode-tab');
+  if (!tab) return;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentMode = tab.dataset.mode;
+  document.querySelectorAll('.mode-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + currentMode).style.display = '';
+});
+
+// ==================== 模式1：数字摇号 ====================
+async function startNumberDraw() {
+  if (isDrawing) return;
+  isDrawing = true;
+  const btn = document.getElementById('btnRollNumber');
+  btn.disabled = true;
+
+  const from = parseInt(document.getElementById('rangeFrom').value) || 1;
+  const to = parseInt(document.getElementById('rangeTo').value) || 36;
+  const count = parseInt(document.getElementById('pickCount').value) || 7;
+  const withReplacement = document.getElementById('withReplacement').value === 'true';
+
+  if (from > to) { alert('起始范围不能大于结束范围'); isDrawing = false; btn.disabled = false; return; }
+  const available = to - from + 1;
+  if (!withReplacement && count > available) {
+    alert(`不放回模式下，抽取个数(${count})不能大于号码总数(${available})`);
+    isDrawing = false; btn.disabled = false; return;
+  }
+
+  const resultArea = document.getElementById('resultNumber');
+
+  // 滚动动画
+  const rollDuration = 2000; // 2秒滚动
+  const rollInterval = 50;
+  const steps = rollDuration / rollInterval;
+  let step = 0;
+
+  resultArea.innerHTML = '<div class="rolling-display" id="rollDisplay">---</div>';
+  const rollEl = document.getElementById('rollDisplay');
+
+  const rollTimer = setInterval(() => {
+    step++;
+    if (!withReplacement) {
+      // 显示随机滚动
+      const temp = [];
+      for (let i = 0; i < count; i++) {
+        temp.push(from + Math.floor(Math.random() * (to - from + 1)));
+      }
+      rollEl.textContent = temp.join('  ');
+    } else {
+      rollEl.textContent = from + Math.floor(Math.random() * (to - from + 1));
+    }
+    playTickSound();
+    if (step >= steps) {
+      clearInterval(rollTimer);
+      // 生成最终结果
+      let result;
+      if (withReplacement) {
+        result = [];
+        for (let i = 0; i < count; i++) {
+          result.push(from + Math.floor(Math.random() * (to - from + 1)));
+        }
+      } else {
+        const pool = [];
+        for (let i = from; i <= to; i++) pool.push(i);
+        // Fisher-Yates 洗牌
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        result = pool.slice(0, count).sort((a, b) => a - b);
+      }
+      displayNumberResult(result, resultArea);
+      playWinSound();
+      spawnConfetti(50);
+      addHistory('number', result.join(', '));
+      isDrawing = false;
+      btn.disabled = false;
+    }
+  }, rollInterval);
+}
+
+function displayNumberResult(numbers, container) {
+  const colors = ['ball-red', 'ball-blue', 'ball-gold'];
+  const balls = numbers.map((n, i) => {
+    const c = colors[i % colors.length];
+    return `<div class="result-ball ${c}" style="animation-delay:${i * 0.1}s">${n}</div>`;
+  }).join('');
+  container.innerHTML = `<div class="result-balls">${balls}</div>`;
+}
+
+function clearResult(mode) {
+  const area = document.getElementById('result' + mode.charAt(0).toUpperCase() + mode.slice(1));
+  if (area) area.innerHTML = '<span class="result-placeholder">👆 点击上方按钮开始</span>';
+}
+
+// ==================== 模式2：名单抽签 ====================
+function addName() {
+  const input = document.getElementById('nameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (nameList.includes(name)) { alert('该姓名已存在'); return; }
+  nameList.push(name);
+  input.value = '';
+  input.focus();
+  renderNameList();
+}
+
+function importBatchNames() {
+  const input = document.getElementById('nameBatchInput');
+  const raw = input.value.trim();
+  if (!raw) return;
+  const names = raw.split(/[,，、\s]+/).filter(Boolean);
+  let added = 0;
+  names.forEach(n => {
+    if (!nameList.includes(n)) { nameList.push(n); added++; }
+  });
+  input.value = '';
+  renderNameList();
+  if (added > 0) playBeep(600, 0.1);
+}
+
+function addDemoNames() {
+  const demos = ['张三', '李四', '王五', '赵六', '孙七', '周八', '吴九', '郑十',
+                  '小明', '小红', '小华', '小丽', '小刚', '小美', '阿杰', '阿玲',
+                  'David', 'Lucy', 'Mike', 'Emma'];
+  let added = 0;
+  demos.forEach(n => {
+    if (!nameList.includes(n)) { nameList.push(n); added++; }
+  });
+  renderNameList();
+  if (added > 0) playBeep(600, 0.1);
+}
+
+function clearNameList() {
+  if (nameList.length === 0) return;
+  if (confirm('确定要清空全部名单吗？')) {
+    nameList = [];
+    renderNameList();
+    clearResult('name');
+  }
+}
+
+function removeName(index) {
+  nameList.splice(index, 1);
+  renderNameList();
+}
+
+function renderNameList() {
+  const container = document.getElementById('nameListDisplay');
+  if (nameList.length === 0) {
+    container.innerHTML = '<span class="text-muted">暂无参与者，请添加</span>';
+    return;
+  }
+  container.innerHTML = nameList.map((n, i) =>
+    `<span class="name-chip">${n}<span class="del-name" onclick="removeName(${i})">×</span></span>`
+  ).join('');
+  document.getElementById('drawNameCount').max = nameList.length;
+}
+
+async function startNameDraw() {
+  if (isDrawing) return;
+  if (nameList.length === 0) { alert('请先添加参与者名单'); return; }
+
+  const drawCount = parseInt(document.getElementById('drawNameCount').value) || 1;
+  if (drawCount > nameList.length) {
+    alert(`抽取人数(${drawCount})不能大于名单总数(${nameList.length})`);
+    return;
+  }
+
+  isDrawing = true;
+  const btn = document.getElementById('btnDrawName');
+  btn.disabled = true;
+
+  const resultArea = document.getElementById('resultName');
+  const rollDuration = 2000;
+  const rollInterval = 60;
+  const steps = rollDuration / rollInterval;
+  let step = 0;
+
+  resultArea.innerHTML = '<div class="rolling-display" id="rollDisplay" style="font-size:2.4em;">---</div>';
+  const rollEl = document.getElementById('rollDisplay');
+
+  const rollTimer = setInterval(() => {
+    step++;
+    const idx = Math.floor(Math.random() * nameList.length);
+    rollEl.textContent = nameList[idx];
+    playTickSound();
+    if (step >= steps) {
+      clearInterval(rollTimer);
+
+      // Fisher-Yates 抽取
+      const pool = [...nameList];
+      const winners = [];
+      for (let i = 0; i < drawCount && pool.length > 0; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        winners.push(pool.splice(idx, 1)[0]);
+      }
+
+      // 展示中奖者
+      const cards = winners.map((w, i) => `
+        <div class="winner-card" style="animation-delay:${i * 0.2}s">
+          <div class="winner-label">🏆 中奖者 ${i + 1}</div>
+          <div class="winner-name">${w}</div>
+        </div>
+      `).join('');
+      resultArea.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;width:100%;">${cards}</div>`;
+
+      // 高亮名单中的中奖者
+      highlightWinnersInList(winners);
+
+      playWinSound();
+      spawnConfetti(80);
+      addHistory('name', winners.join(', '));
+      isDrawing = false;
+      btn.disabled = false;
+    }
+  }, rollInterval);
+}
+
+function highlightWinnersInList(winners) {
+  const chips = document.querySelectorAll('#nameListDisplay .name-chip');
+  chips.forEach(chip => {
+    const name = chip.textContent.replace('×', '').trim();
+    if (winners.includes(name)) {
+      chip.classList.add('winner-chip');
+    }
+  });
+}
+
+// ==================== 模式3：自选号码开奖 ====================
+function generateWinningNumbers() {
+  const maxNum = parseInt(document.getElementById('customMaxNum').value) || 33;
+  const pickCount = parseInt(document.getElementById('customPickCount').value) || 6;
+
+  if (pickCount > maxNum) { alert('开奖号码个数不能大于号码总数'); return; }
+
+  const pool = [];
+  for (let i = 1; i <= maxNum; i++) pool.push(i);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  winningNumbers = pool.slice(0, pickCount).sort((a, b) => a - b);
+
+  const display = document.getElementById('winningDisplay');
+  const balls = winningNumbers.map((n, i) =>
+    `<div class="result-ball ball-gold" style="width:50px;height:50px;font-size:1.2em;animation-delay:${i*0.1}s">${n}</div>`
+  ).join('');
+  display.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="font-weight:700;color:var(--gold);">🏆 中奖号码：</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${balls}</div>
+    </div>`;
+
+  playBeep(800, 0.15, 'triangle');
+}
+
+function addPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  const numsStr = document.getElementById('playerNumbers').value.trim();
+  if (!name || !numsStr) { alert('请输入姓名和所选号码'); return; }
+
+  const nums = numsStr.split(/[,，\s]+/).map(Number).filter(n => !isNaN(n));
+  if (nums.length === 0) { alert('号码格式不正确'); return; }
+
+  // 去重检查
+  if (players.find(p => p.name === name)) { alert('该参与者已存在'); return; }
+
+  players.push({ name, numbers: nums });
+  document.getElementById('playerName').value = '';
+  document.getElementById('playerNumbers').value = '';
+  renderPlayerList();
+}
+
+function importBatchPlayers() {
+  const raw = document.getElementById('batchPlayersInput').value.trim();
+  if (!raw) return;
+
+  const lines = raw.split('\n').filter(Boolean);
+  let added = 0;
+  lines.forEach(line => {
+    const match = line.match(/^(.+?)=(.+)$/);
+    if (!match) return;
+    const name = match[1].trim();
+    const nums = match[2].split(/[,，\s]+/).map(Number).filter(n => !isNaN(n));
+    if (name && nums.length > 0 && !players.find(p => p.name === name)) {
+      players.push({ name, numbers: nums });
+      added++;
+    }
+  });
+  document.getElementById('batchPlayersInput').value = '';
+  renderPlayerList();
+  if (added > 0) playBeep(600, 0.1);
+  alert(`成功导入 ${added} 名参与者`);
+}
+
+function renderPlayerList() {
+  const container = document.getElementById('playerListDisplay');
+  if (players.length === 0) {
+    container.innerHTML = '<span class="text-muted">暂无参与者</span>';
+    return;
+  }
+  container.innerHTML = players.map((p, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:10px 14px;border-radius:10px;margin-bottom:6px;border:1px solid var(--border);">
+      <span style="font-weight:600;">${p.name}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--muted);font-size:0.85em;">选号：${p.numbers.join(', ')}</span>
+        <span class="del-name" onclick="removePlayer(${i})" style="cursor:pointer;opacity:0.4;">×</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removePlayer(index) {
+  players.splice(index, 1);
+  renderPlayerList();
+}
+
+function clearCustomAll() {
+  if (confirm('确定清空中奖号码和所有参与者吗？')) {
+    winningNumbers = [];
+    players = [];
+    document.getElementById('winningDisplay').innerHTML = '';
+    renderPlayerList();
+    clearResult('custom');
+  }
+}
+
+function startCustomDraw() {
+  if (winningNumbers.length === 0) { alert('请先生成中奖号码'); return; }
+  if (players.length === 0) { alert('请先添加参与者'); return; }
+
+  const resultArea = document.getElementById('resultCustom');
+
+  // 计算每个参与者的匹配数
+  const results = players.map(p => {
+    const matched = p.numbers.filter(n => winningNumbers.includes(n));
+    return { ...p, matched, matchCount: matched.length };
+  });
+
+  // 按匹配数降序排列
+  results.sort((a, b) => b.matchCount - a.matchCount);
+
+  const html = results.map((r, i) => {
+    const isWinner = r.matchCount > 0;
+    const rank = isWinner ? (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '') : '';
+    const bgColor = i === 0 && r.matchCount > 0
+      ? 'linear-gradient(135deg, rgba(240,192,96,0.15), rgba(255,77,106,0.08))'
+      : 'var(--bg)';
+    const borderColor = i === 0 && r.matchCount > 0 ? 'var(--gold)' : (isWinner ? 'var(--accent)' : 'var(--border)');
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:${bgColor};padding:12px 16px;border-radius:12px;margin-bottom:8px;border:2px solid ${borderColor};">
+        <span style="font-weight:700;">${rank} ${r.name}</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="color:var(--muted);font-size:0.85em;">选号：${r.numbers.join(', ')}</span>
+          <span style="font-weight:700;color:${r.matchCount > 0 ? 'var(--gold)' : 'var(--muted)'};">
+            中 ${r.matchCount} 个 ${r.matchCount > 0 ? '🎉' : ''}
+          </span>
+          ${r.matchCount > 0 ? `<span style="color:var(--accent);font-size:0.8em;">匹配：${r.matched.join(', ')}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  resultArea.innerHTML = `
+    <div style="width:100%;">
+      <div style="text-align:center;margin-bottom:16px;font-weight:700;color:var(--gold);font-size:1.1em;">
+        🏆 开奖结果
+      </div>
+      ${html}
+    </div>`;
+
+  playWinSound();
+  spawnConfetti(60);
+  addHistory('custom', `中奖号码[${winningNumbers.join(',')}] → ${results.filter(r=>r.matchCount>0).map(r=>r.name+'(中'+r.matchCount+')').join(', ') || '无人中奖'}`);
+}
+
+// ==================== 历史记录 ====================
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem('lottery_history');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveHistory() {
+  // 只保留最近20条
+  if (history.length > 20) history = history.slice(-20);
+  try { localStorage.setItem('lottery_history', JSON.stringify(history)); } catch(e) {}
+}
+
+function addHistory(mode, result) {
+  const modeNames = { number: '🔢 数字摇号', name: '🎯 名单抽签', custom: '🎲 自选开奖' };
+  history.push({
+    mode: modeNames[mode] || mode,
+    result,
+    time: new Date().toLocaleString('zh-CN')
+  });
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (history.length === 0) {
+    container.innerHTML = '<span class="result-placeholder" style="font-size:0.9em;">暂无记录</span>';
+    return;
+  }
+  container.innerHTML = [...history].reverse().map(h => `
+    <div class="history-item">
+      <div style="flex:1;">
+        <div style="font-weight:600;margin-bottom:4px;">${h.result}</div>
+        <span class="history-mode">${h.mode}</span>
+      </div>
+      <span class="history-time">${h.time}</span>
+    </div>
+  `).join('');
+}
+
+function clearHistory() {
+  if (history.length === 0) return;
+  if (confirm('确定清空所有开奖记录吗？')) {
+    history = [];
+    saveHistory();
+    renderHistory();
+  }
+}
+
+function exportHistory() {
+  if (history.length === 0) { alert('没有记录可导出'); return; }
+  let text = '======== 抽签摇号开奖记录 ========\n\n';
+  history.forEach((h, i) => {
+    text += `[${i + 1}] ${h.time}\n`;
+    text += `    模式：${h.mode}\n`;
+    text += `    结果：${h.result}\n\n`;
+  });
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `开奖记录_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ==================== 键盘快捷键 ====================
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    if (currentMode === 'name' && e.target.id === 'nameInput') {
+      e.preventDefault();
+      addName();
+    }
+  }
+  // 空格键触发当前模式的抽奖
+  if (e.key === ' ' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    if (currentMode === 'number') startNumberDraw();
+    else if (currentMode === 'name') startNameDraw();
+    else if (currentMode === 'custom') startCustomDraw();
+  }
+});
+
+// ==================== 初始化 ====================
+renderNameList();
+renderHistory();
+
+console.log('🎰 抽签摇号开奖系统已就绪');
+console.log('  - 按 空格键 快速触发当前模式抽奖');
+console.log('  - 支持 数字摇号 | 名单抽签 | 自选开奖 三种模式');
+console.log('  - 历史记录保存在本地浏览器');
+</script>
+</body>
+</html>
